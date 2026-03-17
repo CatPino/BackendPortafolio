@@ -1,0 +1,36 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-BackendUsuarioApplication<backend_usuario>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.backend.backend_usuario.BackendUsuarioApplication",
+            "projectName": "backend_usuario",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-BackendInventarioApplication<backend_inventario>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.inventario.backend_inventario.BackendInventarioApplication",
+            "projectName": "backend_inventario",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-PagoApplication<pago>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "backend_pago.PagoApplication",
+            "projectName": "pago",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
