@@ -54,6 +54,10 @@ public interface UsuarioRepository extends CrudRepository<Usuario, Long> {
 
     Optional<Usuario> findByEmail(String email);
 
-    // ✅ Saber si ya existe un correo registrado
+
     boolean existsByEmail(String email);
-}
+
+    @Query("SELECT u FROM Usuario u JOIN FETCH u.rol WHERE u.email = :email")
+    Optional<Usuario> findByEmailWithRol(@Param("email") String email);
+
+    }
