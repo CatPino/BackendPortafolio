@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "pago")
+@Table(name = "pago", schema = "pago")
 public class Pago {
 
     @Id
