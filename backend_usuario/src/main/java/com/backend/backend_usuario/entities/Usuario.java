@@ -20,7 +20,7 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Table(
-    name = "usuarios",
+    name = "usuarios", schema = "usuario",
     indexes = {
         @Index(name = "idx_usuarios_rol_estado", columnList = "rol_id, estado"),
         @Index(name = "idx_usuarios_rol_estado_fecha", columnList = "rol_id, estado, fecha_creacion")
@@ -70,7 +70,7 @@ public class Usuario {
     @Size(max = 255)
     private String infoEnvio; 
 
-    @Column(name = "estado", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
+    @Column(name = "estado", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean estado = true;
 
     @CreationTimestamp

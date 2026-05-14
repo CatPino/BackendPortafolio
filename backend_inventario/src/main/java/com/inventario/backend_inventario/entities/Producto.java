@@ -12,6 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "producto", schema = "inventario")
 public class Producto {
 
     @Id
