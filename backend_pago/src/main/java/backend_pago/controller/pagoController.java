@@ -62,7 +62,7 @@ public class pagoController {
             det.setProducto(d.getProducto());
             det.setCantidad(d.getCantidad());
             det.setPrecioUnitario(d.getPrecioUnitario());
-            det.setImagenUrl(d.getImagenUrl());
+            det.setimagen_url(d.getimagen_url());
 
             double sub = d.getCantidad() * d.getPrecioUnitario(); // precio YA incluye IVA
             det.setSubtotal(sub);

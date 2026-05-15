@@ -103,7 +103,7 @@ public class ProductoRestControllers {
             }
 
             String url = productoServices.subirImagen(id, archivo);
-            return ResponseEntity.ok(Map.of("imagenUrl", url));
+            return ResponseEntity.ok(Map.of("imagen_url", url));
 
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(404).body(Map.of("error", "Producto no encontrado: " + id));

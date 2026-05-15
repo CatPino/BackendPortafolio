@@ -33,7 +33,7 @@ public class Producto {
     private Long stock;
 
     @Column(nullable = true)
-    private String imagenUrl;
+    private String imagen_url;
 
     @NotNull
     private Boolean activo = true;
