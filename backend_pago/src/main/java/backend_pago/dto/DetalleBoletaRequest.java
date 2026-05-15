@@ -8,5 +8,5 @@ public class DetalleBoletaRequest {
     private Integer cantidad;
     private Double precioUnitario;
     private Double subtotal;
-    private String imagen_url;
+    private String imagenUrl;
 }

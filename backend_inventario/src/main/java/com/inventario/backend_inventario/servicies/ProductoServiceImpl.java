@@ -89,7 +89,7 @@ public class ProductoServiceImpl implements ProductoService {
             String url = "http://localhost:8081/img/" + nombre;
 
             Producto p = obtenerId(idProducto);
-            p.setimagen_url(url);
+            p.setimagenUrl(url);
             productoRepositories.save(p);
 
             return url;
