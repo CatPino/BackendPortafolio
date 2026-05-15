@@ -32,7 +32,7 @@ public class Producto {
     @NotNull
     private Long stock;
 
-    @Column(nullable = true)
+    @Column(name = "imagen_url", nullable = true)
     private String imagenUrl;
 
     @NotNull
@@ -46,4 +46,12 @@ public class Producto {
     @JoinColumn(name = "categoria_id")
     @NotNull
     private Categoria categoria;
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
+    }
 }
