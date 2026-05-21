@@ -50,7 +50,7 @@ public class WebpayController {
             String buyOrder = "ORD-" + UUID.randomUUID().toString().substring(0, 8);
             String sessionId = UUID.randomUUID().toString();
 
-            String returnUrl = "https://backendportafolio-635z.onrender.com/api/webpay/confirmar?sid=" + sessionId;
+            String returnUrl = "https://backend-pago.onrender.com/api/webpay/confirmar?sid=" + sessionId;
 
             Map<String, Object> claims = new HashMap<>();
             claims.put("nombre", request.getNombreCliente());
