@@ -26,21 +26,33 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(
-                            "/api/webpay/crear",
-                            "/api/webpay/confirmar",
-                            "/swagger-ui/**",
-                            "/v3/api-docs/**",
-                            "/api/pagos/boleta/**"
-                    ).permitAll()
-                    .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+    .cors(cors -> cors.configurationSource(request -> {
+        var config = new org.springframework.web.cors.CorsConfiguration();
+        config.setAllowedOrigins(List.of(
+            "http://localhost:5173",
+            "https://frontend-portafolio-lumiskin-yebo.vercel.app"
+        ));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        return config;
+    }))
+    .csrf(csrf -> csrf.disable())
+    .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+    )
+    .authorizeHttpRequests(auth -> auth
+            .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers(
+                    "/api/webpay/crear",
+                    "/api/webpay/confirmar",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/api/pagos/boleta/**"
+            ).permitAll()
+            .anyRequest().authenticated()
+    )
+     .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
