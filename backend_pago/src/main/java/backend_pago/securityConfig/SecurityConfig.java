@@ -34,7 +34,8 @@ public class SecurityConfig {
                             "/api/webpay/crear",
                             "/api/webpay/confirmar",
                             "/swagger-ui/**",
-                            "/v3/api-docs/**"
+                            "/v3/api-docs/**",
+                            "/api/pagos/boleta/**"
                     ).permitAll()
                     .anyRequest().authenticated()
             )
