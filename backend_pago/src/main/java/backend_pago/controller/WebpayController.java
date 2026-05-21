@@ -22,7 +22,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/webpay")
-@CrossOrigin(origins = "https://frontend-portafolio-lumiskin-yebo.vercel.app")
 public class WebpayController {
 
     private final pagoService pagoService;
