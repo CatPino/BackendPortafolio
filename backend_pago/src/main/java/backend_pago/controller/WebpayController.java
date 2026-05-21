@@ -16,26 +16,29 @@ import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCreateRespo
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+
 @RestController
 @RequestMapping("/api/webpay")
-@CrossOrigin(origins = "http://localhost:5173") // Ajusta el puerto según tu frontend
+@CrossOrigin(origins = "http://localhost:5173")
 public class WebpayController {
 
     private final pagoService pagoService;
     private final WebpayPlus.Transaction transaction;
-    private final Map<String, PagoRequest> pagosPendientes = new HashMap<>();
     private final JwtUtils jwtUtils;
+
+    // ✅ Ambos Maps declarados correctamente como campos
+    private final Map<String, PagoRequest> pagosPendientes = new HashMap<>();
+    private final Map<String, String> jwtsPendientes = new HashMap<>();
 
     public WebpayController(pagoService pagoService, JwtUtils jwtUtils) {
         this.pagoService = pagoService;
         this.jwtUtils = jwtUtils;
 
         WebpayOptions options = new WebpayOptions(
-                "597055555532", // tu commerce code
-                "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C", // tu apiKey test
+                "597055555532",
+                "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C",
                 IntegrationType.TEST
         );
-
         this.transaction = new WebpayPlus.Transaction(options);
     }
 
@@ -46,9 +49,24 @@ public class WebpayController {
         try {
             String buyOrder = "ORD-" + UUID.randomUUID().toString().substring(0, 8);
             String sessionId = UUID.randomUUID().toString();
-            String returnUrl = "https://backendportafolio-635z.onrender.com/api/webpay/confirmar"; 
+
+            String returnUrl = "https://backendportafolio-635z.onrender.com/api/webpay/confirmar?sid=" + sessionId;
+
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("nombre", request.getNombreCliente());
+            claims.put("correo", request.getCorreoCliente());
+            claims.put("telefono", request.getTelefonoCliente());
+            claims.put("direccion", request.getDireccionCliente());
+            claims.put("region", request.getRegionCliente());
+            claims.put("comuna", request.getComunaCliente());
+            claims.put("indicaciones", request.getIndicacionesEnvio());
+            claims.put("carrito", request.getDetalles());
+            claims.put("total", request.getTotal());
+
+            String jwt = jwtUtils.generateToken(claims);
 
             pagosPendientes.put(sessionId, request);
+            jwtsPendientes.put(sessionId, jwt);
 
             int monto = (int) Math.round(request.getTotal());
 
@@ -58,21 +76,6 @@ public class WebpayController {
                     monto,
                     returnUrl
             );
-
-            Map<String, Object> claims = new HashMap<>();
-            claims.put("nombre", request.getNombreCliente());
-            claims.put("correo", request.getCorreoCliente());
-            claims.put("telefono", request.getTelefonoCliente());
-
-            claims.put("direccion", request.getDireccionCliente());
-            claims.put("region", request.getRegionCliente());
-            claims.put("comuna", request.getComunaCliente());
-            claims.put("indicaciones", request.getIndicacionesEnvio());
-
-            claims.put("carrito", request.getDetalles());
-            claims.put("total", request.getTotal());
-
-            String jwt = jwtUtils.generateToken(claims);
 
             response.put("url", tx.getUrl() + "?token_ws=" + tx.getToken());
             response.put("token", tx.getToken());
@@ -89,11 +92,13 @@ public class WebpayController {
     @GetMapping("/confirmar")
     public Boleta confirmarPago(
             @RequestParam("token_ws") String token,
-            @RequestHeader("Authorization") String authHeader
+            @RequestParam("sid") String sid       
     ) {
         try {
-            // Extraer token JWT
-            String jwt = authHeader.replace("Bearer ", "");
+            String jwt = jwtsPendientes.get(sid);
+            if (jwt == null)
+                throw new RuntimeException("JWT no encontrado para la sesión");
+
             Map<String, Object> dataCliente = jwtUtils.getClaims(jwt);
 
             WebpayPlusTransactionCommitResponse commit = transaction.commit(token);
@@ -103,22 +108,18 @@ public class WebpayController {
             if (request == null)
                 throw new RuntimeException("Pago no encontrado en sesión");
 
-            // Crear entidad Pago
             Pago pago = new Pago();
             pago.setMetodoPago("WEBPAY");
             pago.setTotal(request.getTotal());
 
-            // Crear boleta asociada
             Boleta boleta = new Boleta();
-            String nombre = (String) dataCliente.get("nombre");
-            boleta.setNombreCliente(nombre);
+            boleta.setNombreCliente((String) dataCliente.get("nombre"));
             boleta.setCorreoCliente((String) dataCliente.get("correo"));
             boleta.setDireccionCliente(
                 dataCliente.get("direccion") + ", " +
                 dataCliente.get("comuna") + ", " +
                 dataCliente.get("region")
             );
-
             boleta.setPago(pago);
 
             List<DetalleBoleta> detalles = new ArrayList<>();
@@ -138,6 +139,7 @@ public class WebpayController {
             pagoService.crearPago(pago, boleta, detalles);
 
             pagosPendientes.remove(sessionId);
+            jwtsPendientes.remove(sid);
 
             return boleta;
 
