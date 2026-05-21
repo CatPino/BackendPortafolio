@@ -14,7 +14,7 @@ import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://frontend-portafolio-lumiskin-yebo.vercel.app")
 @RestController
 @RequestMapping("/api/categorias")
 @Tag(name = "Categorias", description = "Gestión de categorías del inventario")
