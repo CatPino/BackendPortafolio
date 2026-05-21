@@ -97,4 +97,11 @@ public class pagoController {
     public ResponseEntity<List<Pago>> obtenerTodosLosPagos() {
         return ResponseEntity.ok(pagoService.obtenerTodos());
     }
+
+    @Operation(summary = "Obtener boleta por ID")
+    @GetMapping("/boleta/{id}")
+    public ResponseEntity<Boleta> obtenerBoleta(@PathVariable Long id) {
+        Boleta boleta = pagoService.obtenerBoletaPorId(id);
+        return ResponseEntity.ok(boleta);
+    }
 }

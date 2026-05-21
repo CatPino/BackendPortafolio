@@ -71,4 +71,9 @@ public Pago crearPago(Pago pago, Boleta boleta, List<DetalleBoleta> detalles) {
         Pago pago = obtenerPorId(idPago);
         pagoRepository.delete(pago);
     }
+
+    public Boleta obtenerBoletaPorId(Long id) {
+    return boletaRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Boleta no encontrada"));
+}
 }

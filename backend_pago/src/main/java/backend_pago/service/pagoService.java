@@ -18,4 +18,6 @@ public interface pagoService {
     
     // Eliminar un pago
     void eliminarPago(Long idPago);
+
+    Boleta obtenerBoletaPorId(Long id);
 }

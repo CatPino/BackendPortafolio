@@ -12,7 +12,10 @@ import cl.transbank.webpay.common.WebpayOptions;
 import cl.transbank.webpay.webpayplus.WebpayPlus;
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCommitResponse;
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCreateResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -25,6 +28,7 @@ public class WebpayController {
     private final pagoService pagoService;
     private final WebpayPlus.Transaction transaction;
     private final JwtUtils jwtUtils;
+    HttpServletResponse httpResponse;
 
     // ✅ Ambos Maps declarados correctamente como campos
     private final Map<String, PagoRequest> pagosPendientes = new HashMap<>();
@@ -90,7 +94,7 @@ public class WebpayController {
     }
 
     @GetMapping("/confirmar")
-    public Boleta confirmarPago(
+    public ResponseEntity<Void> confirmarPago(
             @RequestParam("token_ws") String token,
             @RequestParam("sid") String sid       
     ) {
@@ -139,9 +143,13 @@ public class WebpayController {
             pagoService.crearPago(pago, boleta, detalles);
 
             pagosPendientes.remove(sessionId);
+            pagosPendientes.remove(sid);
             jwtsPendientes.remove(sid);
 
-            return boleta;
+            String redirectUrl = "https://frontend-portafolio-lumiskin-yebo.vercel.app/compra-exitosa?idBoleta=" + boleta.getIdBoleta();
+            return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", redirectUrl)
+                .build();
 
         } catch (Exception e) {
             throw new RuntimeException("Error al confirmar pago: " + e.getMessage());
