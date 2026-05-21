@@ -30,7 +30,7 @@ public class Pago {
     // Relación 1:1 con Boleta (bidireccional)
     @OneToOne(mappedBy = "pago", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("pago")
-    @ToString.Exclude               // ⛔ Evita recursión infinita en toString()
-    @EqualsAndHashCode.Exclude      // ⛔ Evita recursión infinita en equals/hashCode
+    @ToString.Exclude               
+    @EqualsAndHashCode.Exclude      
     private Boleta boleta;
 }

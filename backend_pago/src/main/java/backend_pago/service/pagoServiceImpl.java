@@ -39,41 +39,44 @@ public class pagoServiceImpl implements pagoService {
     }
 
     @Override
-public Pago crearPago(Pago pago, Boleta boleta, List<DetalleBoleta> detalles) {
+    public Pago crearPago(Pago pago, Boleta boleta, List<DetalleBoleta> detalles) {
 
-    double subtotal = detalles.stream()
-            .mapToDouble(DetalleBoleta::getSubtotal)
-            .sum();
+        double subtotal = detalles.stream()
+                .mapToDouble(DetalleBoleta::getSubtotal)
+                .sum();
 
-    double iva = Math.round(subtotal * 0.19);
-    double total = subtotal + iva;
+        double total = subtotal;
+        double iva = Math.round(subtotal * (19.0 / 119.0));
+        double neto = subtotal - iva;
 
-    pago.setFechaPago(LocalDateTime.now());
-    pago.setSubtotal(subtotal);
-    pago.setIva(iva);
-    pago.setTotal(total);
+        pago.setTotal(total);
+        pago.setIva(iva);
+        pago.setSubtotal(neto);
+        if (pago.getFechaPago() == null) {
+            pago.setFechaPago(LocalDateTime.now());
+        }
 
-    Pago pagoGuardado = pagoRepository.save(pago);
+        Pago pagoGuardado = pagoRepository.save(pago);
 
-    boleta.setPago(pagoGuardado);
-    Boleta boletaGuardada = boletaRepository.save(boleta);
+        boleta.setPago(pagoGuardado);
+        Boleta boletaGuardada = boletaRepository.save(boleta);
 
-    for (DetalleBoleta detalle : detalles) {
-        detalle.setBoleta(boletaGuardada);
-        detalleBoletaRepository.save(detalle);
+        for (DetalleBoleta detalle : detalles) {
+            detalle.setBoleta(boletaGuardada);
+            detalleBoletaRepository.save(detalle);
+        }
+
+        return pagoGuardado;
     }
 
-    return pagoGuardado;
-}
+        @Override
+        public void eliminarPago(Long idPago) {
+            Pago pago = obtenerPorId(idPago);
+            pagoRepository.delete(pago);
+        }
 
-    @Override
-    public void eliminarPago(Long idPago) {
-        Pago pago = obtenerPorId(idPago);
-        pagoRepository.delete(pago);
+        public Boleta obtenerBoletaPorId(Long id) {
+        return boletaRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Boleta no encontrada"));
     }
-
-    public Boleta obtenerBoletaPorId(Long id) {
-    return boletaRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Boleta no encontrada"));
-}
 }

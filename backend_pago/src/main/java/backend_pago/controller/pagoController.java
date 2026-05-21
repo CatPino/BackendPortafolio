@@ -54,7 +54,6 @@ public class pagoController {
         boleta.setPago(pago);
 
         List<DetalleBoleta> detalles = new ArrayList<>();
-        double subtotal = 0.0;
 
         for (var d : request.getDetalles()) {
 
@@ -64,21 +63,12 @@ public class pagoController {
             det.setPrecioUnitario(d.getPrecioUnitario());
             det.setImagenUrl(d.getImagenUrl());
 
-            double sub = d.getCantidad() * d.getPrecioUnitario(); // precio YA incluye IVA
+            double sub = d.getCantidad() * d.getPrecioUnitario(); 
             det.setSubtotal(sub);
-            subtotal += sub;
 
             det.setBoleta(boleta);
             detalles.add(det);
         }
-     
-        double iva = Math.round(subtotal * (19.0 / 119.0));
-        double total = subtotal;        // total ya incluye IVA
-        double neto = subtotal - iva;   // neto sin IVA (solo referencia, no se guarda)
-
-        pago.setSubtotal(subtotal); 
-        pago.setIva(iva);
-        pago.setTotal(total);
 
         boleta.setDetalles(detalles);
         pago.setBoleta(boleta);
