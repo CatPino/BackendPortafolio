@@ -48,7 +48,7 @@ public class SecurityConfig {
                     "/api/webpay/confirmar",
                     "/swagger-ui/**",
                     "/v3/api-docs/**",
-                    "/api/pagos/boleta/**"
+                    "/api/pagos/boleta/**",
                     "/api/productos",        
                     "/api/productos/**",     
                     "/api/categorias",       
