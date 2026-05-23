@@ -22,6 +22,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return path.startsWith("/api/webpay/crear")
                 || path.startsWith("/api/webpay/confirmar")
                 || path.startsWith("/api/pagos/boleta");
+                || path.equals("/api/pagos")        
+                || path.startsWith("/api/pagos/");  
     }
 
     @Override
