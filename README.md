@@ -1,9 +1,9 @@
-#LumiSkin – Backend Portafolio
+# LumiSkin – Backend Portafolio
 Backend del sistema de comercio electrónico LumiSkin, desarrollado con arquitectura de microservicios usando Spring Boot, JPA y PostgreSQL.
 
 Proyecto académico – DUOC UC 
 
-#Estructura del Repositorio
+# Estructura del Repositorio
 BackendPortafolio/
 ├── backend_usuario/       # Microservicio de usuarios y autenticación
 ├── backend_inventario/    # Microservicio de productos e inventario
@@ -11,7 +11,7 @@ BackendPortafolio/
 ├── Dockerfile             # Configuración para despliegue en Render
 └── README.md
 
-#Microservicios
+# Microservicios
 backend_usuario
 Gestiona el registro, autenticación y roles de los usuarios del sistema.
 Responsabilidades:
@@ -95,7 +95,7 @@ Maven 3.8+
 PostgreSQL (o acceso a base de datos en Supabase)
 IDE recomendado: IntelliJ IDEA o VS Code
 
-#cómo ejecutar cada microservicio
+# cómo ejecutar cada microservicio
 1. Clonar el repositorio
 bashgit clone https://github.com/CatPino/BackendPortafolio.git
 cd BackendPortafolio
@@ -108,16 +108,16 @@ spring.datasource.username=tu_usuario
 spring.datasource.password=tu_contraseña
 spring.jpa.hibernate.ddl-auto=update
 
-#Documentación de la API (Swagger)
+# Documentación de la API (Swagger)
 Cada microservicio expone su documentación:
 Entrar a carpeta backend
 correr microservicio ./mvnw spring-boot:run
 abrir navegador http://localhost:8080/swagger-ui/index.html
 
-#Base de Datos
+# Base de Datos
 Todos los microservicios utilizan PostgreSQL como motor de base de datos.
 
-#Autenticación
+# Autenticación
 El sistema usa JWT (JSON Web Token) para autenticación sin estado:
 
 El cliente hace login en backend_usuario
