@@ -111,16 +111,17 @@ spring.jpa.hibernate.ddl-auto=update
 # JWT (solo backend_usuario y backend_pago)
 jwt.secret=tu_clave_secreta
 jwt.expiration=86400000
+
 3. Ejecutar cada microservicio
-bash# Microservicio de usuarios (puerto 8080)
+bash# Microservicio de usuarios 
 cd backend_usuario
 ./mvnw spring-boot:run
 
-# Microservicio de inventario (puerto 8081)
+# Microservicio de inventario 
 cd backend_inventario
 ./mvnw spring-boot:run
 
-# Microservicio de pagos (puerto 8082)
+# Microservicio de pagos 
 cd backend_pago
 ./mvnw spring-boot:run
 
