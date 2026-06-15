@@ -60,4 +60,5 @@ public interface UsuarioRepository extends CrudRepository<Usuario, Long> {
     @Query("SELECT u FROM Usuario u JOIN FETCH u.rol WHERE u.email = :email")
     Optional<Usuario> findByEmailWithRol(@Param("email") String email);
 
+    Optional<Usuario> findByResetToken(String resetToken);
     }

@@ -19,6 +19,8 @@ public interface UsuarioService {
     Usuario desactivar(Long id);
     List<Usuario> listarActivos();
     List<Usuario> listarInactivos();
+    void solicitarRecuperacionContrasena(String email, String redirectUrl);
+    void actualizarContrasenaConToken(String token, String nuevaContrasena);
 }
 
 

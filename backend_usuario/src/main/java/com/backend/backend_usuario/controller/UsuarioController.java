@@ -145,4 +145,51 @@ public class UsuarioController {
         Usuario actualizado = usuarioService.actualizarPerfil(id, req);
         return ResponseEntity.ok(actualizado);
     }
+
+    @Operation(summary = "Solicitar recuperación de contraseña")
+@PostMapping("/olvidaste-contrasena")
+public ResponseEntity<?> olvidasteContrasena(@RequestBody Map<String, String> req) {
+    String email = req.get("email");
+    String redirectUrl = req.get("redirectUrl");
+
+    if (email == null || email.isBlank()) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error", "El correo es requerido"));
+    }
+
+    if (redirectUrl == null || redirectUrl.isBlank()) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error", "La URL de redirección es requerida"));
+    }
+
+    usuarioService.solicitarRecuperacionContrasena(email, redirectUrl);
+
+    return ResponseEntity.ok(Map.of(
+            "mensaje", "Si el correo está registrado, se enviaron instrucciones para recuperar la contraseña."
+    ));
+}
+
+@Operation(summary = "Actualizar contraseña con token de recuperación")
+@PostMapping("/actualizar-contrasena")
+public ResponseEntity<?> actualizarContrasena(@RequestBody Map<String, String> req) {
+    String token = req.get("token");
+    String nuevaContrasena = req.get("nuevaContrasena");
+
+    if (token == null || token.isBlank()) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error", "El token es requerido"));
+    }
+
+    if (nuevaContrasena == null || nuevaContrasena.isBlank()) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error", "La nueva contraseña es requerida"));
+    }
+
+    usuarioService.actualizarContrasenaConToken(token, nuevaContrasena);
+
+    return ResponseEntity.ok(Map.of(
+            "mensaje", "Contraseña actualizada correctamente."
+    ));
+}
+
 }

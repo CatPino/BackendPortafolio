@@ -13,6 +13,8 @@ import com.backend.backend_usuario.entities.Usuario;
 import com.backend.backend_usuario.repositories.UsuarioRepository;
 import com.backend.backend_usuario.repositories.RolRepository;
 import com.backend.backend_usuario.entities.Rol;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -150,4 +152,46 @@ public class UsuarioServiceImpl implements UsuarioService {
     public List<Usuario> listarInactivos() {
         return usuarioRepository.listarInactivos();
     }
+// ======================= SOLICITAR RECUPERACIÓN DE CONTRASEÑA =======================
+  @Override
+public void solicitarRecuperacionContrasena(String email, String redirectUrl) {
+    Usuario usuario = buscarPorEmail(email.trim().toLowerCase());
+
+    if (usuario == null) {
+        return;
+    }
+
+    String token = UUID.randomUUID().toString();
+
+    usuario.setResetToken(token);
+    usuario.setResetTokenExpiracion(LocalDateTime.now().plusMinutes(30));
+
+    usuarioRepository.save(usuario);
+
+    String linkRecuperacion = redirectUrl + "?token=" + token;
+
+    System.out.println("====================================");
+    System.out.println("LINK DE RECUPERACIÓN:");
+    System.out.println(linkRecuperacion);
+    System.out.println("====================================");
+}
+
+@Override
+public void actualizarContrasenaConToken(String token, String nuevaContrasena) {
+    Usuario usuario = usuarioRepository.findByResetToken(token)
+            .orElseThrow(() -> new RuntimeException("Token inválido"));
+
+    if (usuario.getResetTokenExpiracion() == null ||
+            usuario.getResetTokenExpiracion().isBefore(LocalDateTime.now())) {
+        throw new RuntimeException("El enlace de recuperación expiró");
+    }
+
+    usuario.setPassword(passwordEncoder.encode(nuevaContrasena));
+    usuario.setResetToken(null);
+    usuario.setResetTokenExpiracion(null);
+
+    usuarioRepository.save(usuario);
+}
+
+
 }

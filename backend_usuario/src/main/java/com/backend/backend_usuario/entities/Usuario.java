@@ -95,4 +95,11 @@ public class Usuario {
     public void preUpdate() {
         if (email != null) email = email.trim().toLowerCase();
     }
+
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expiracion")
+    private LocalDateTime resetTokenExpiracion;
+
 }

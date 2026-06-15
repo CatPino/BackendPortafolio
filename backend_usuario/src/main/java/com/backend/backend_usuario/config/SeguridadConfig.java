@@ -77,6 +77,9 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .requestMatchers(
                 "/api/usuarios/login",
+                "/api/usuarios",
+                "/api/usuarios/olvidaste-contrasena",
+                "/api/usuarios/actualizar-contrasena",
                 "/swagger-ui/**",
                 "/v3/api-docs/**"
             ).permitAll()
