@@ -81,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        System.out.println("shouldNotFilter -> " + path);
+        System.out.println("LUMISKIN VERSION JUNIO 2026 -> " + path);
 
         return path.equals("/api/usuarios/login")
                 || path.equals("/api/usuarios/olvidaste-contrasena")
