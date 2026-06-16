@@ -15,6 +15,8 @@ import com.backend.backend_usuario.repositories.RolRepository;
 import com.backend.backend_usuario.entities.Rol;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -27,6 +29,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Autowired
     private PasswordEncoder passwordEncoder; 
+
+    @Autowired
+    private JavaMailSender mailSender;
 
     
    @Override
@@ -170,10 +175,25 @@ public void solicitarRecuperacionContrasena(String email, String redirectUrl) {
 
     String linkRecuperacion = redirectUrl + "?token=" + token;
 
-    System.out.println("====================================");
-    System.out.println("LINK DE RECUPERACIÓN:");
-    System.out.println(linkRecuperacion);
-    System.out.println("====================================");
+    SimpleMailMessage mensaje = new SimpleMailMessage();
+
+    mensaje.setTo(usuario.getEmail());
+    mensaje.setSubject("Recuperación de contraseña - Lumiskin");
+
+    mensaje.setText(
+        "Hola " + usuario.getNombre() + ",\n\n" +
+        "Recibimos una solicitud para recuperar tu contraseña.\n\n" +
+        "Haz clic en el siguiente enlace:\n\n" +
+        linkRecuperacion + "\n\n" +
+        "Este enlace expirará en 30 minutos.\n\n" +
+        "Equipo Lumiskin"
+);
+
+System.out.println("Intentando enviar correo...");
+
+    mailSender.send(mensaje);
+
+    System.out.println("Correo enviado correctamente");
 }
 
 @Override

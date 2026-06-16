@@ -78,14 +78,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
    @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        String path = request.getServletPath();
-        String method = request.getMethod();
 
-        return 
-            path.startsWith("/api/usuarios/login")
-            || (path.equals("/api/usuarios") && method.equalsIgnoreCase("POST"))
-            || path.matches("/api/usuarios/.+/perfil")  
-            || path.startsWith("/swagger-ui")
-            || path.startsWith("/v3/api-docs");
+        String path = request.getServletPath();
+
+        System.out.println("shouldNotFilter -> " + path);
+
+        return path.equals("/api/usuarios/login")
+                || path.equals("/api/usuarios/olvidaste-contrasena")
+                || path.equals("/api/usuarios/actualizar-contrasena")
+                || path.equals("/api/usuarios")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs");
     }
 }
