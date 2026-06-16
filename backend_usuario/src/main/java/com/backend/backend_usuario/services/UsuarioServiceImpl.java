@@ -191,9 +191,12 @@ public void solicitarRecuperacionContrasena(String email, String redirectUrl) {
 
 System.out.println("Intentando enviar correo...");
 
+try {
     mailSender.send(mensaje);
-
     System.out.println("Correo enviado correctamente");
+} catch (Exception e) {
+    System.out.println("No se pudo enviar el correo: " + e.getMessage());
+}
 }
 
 @Override
