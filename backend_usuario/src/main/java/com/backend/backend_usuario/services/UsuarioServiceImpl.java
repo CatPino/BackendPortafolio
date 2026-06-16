@@ -15,8 +15,9 @@ import com.backend.backend_usuario.repositories.RolRepository;
 import com.backend.backend_usuario.entities.Rol;
 import java.time.LocalDateTime;
 import java.util.UUID;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -30,8 +31,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Autowired
     private PasswordEncoder passwordEncoder; 
 
-    @Autowired
-    private JavaMailSender mailSender;
+
+    @Value("${brevo.api.key}")
+    private String brevoApiKey;
 
     
    @Override
@@ -174,29 +176,40 @@ public void solicitarRecuperacionContrasena(String email, String redirectUrl) {
     usuarioRepository.save(usuario);
 
     String linkRecuperacion = redirectUrl + "?token=" + token;
+    String url = "https://api.brevo.com/v3/smtp/email";
 
-    SimpleMailMessage mensaje = new SimpleMailMessage();
+HttpHeaders headers = new HttpHeaders();
+headers.setContentType(MediaType.APPLICATION_JSON);
+headers.set("api-key", brevoApiKey);
 
-    mensaje.setTo(usuario.getEmail());
-    mensaje.setSubject("Recuperación de contraseña - Lumiskin");
-
-    mensaje.setText(
-        "Hola " + usuario.getNombre() + ",\n\n" +
-        "Recibimos una solicitud para recuperar tu contraseña.\n\n" +
-        "Haz clic en el siguiente enlace:\n\n" +
-        linkRecuperacion + "\n\n" +
-        "Este enlace expirará en 30 minutos.\n\n" +
-        "Equipo Lumiskin"
+String body = """
+{
+  "sender": {
+    "name": "Lumiskin",
+    "email": "soporte.lumiskin@gmail.com"
+  },
+  "to": [
+    {
+      "email": "%s",
+      "name": "%s"
+    }
+  ],
+  "subject": "Recuperación de contraseña - Lumiskin",
+  "htmlContent": "<p>Hola %s,</p><p>Recibimos una solicitud para recuperar tu contraseña.</p><p>Haz clic en el siguiente enlace:</p><p><a href='%s'>Cambiar contraseña</a></p><p>Este enlace expirará en 30 minutos.</p><p>Equipo Lumiskin</p>"
+}
+""".formatted(
+        usuario.getEmail(),
+        usuario.getNombre(),
+        usuario.getNombre(),
+        linkRecuperacion
 );
 
-System.out.println("Intentando enviar correo...");
+HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
-try {
-    mailSender.send(mensaje);
-    System.out.println("Correo enviado correctamente");
-} catch (Exception e) {
-    System.out.println("No se pudo enviar el correo: " + e.getMessage());
-}
+RestTemplate restTemplate = new RestTemplate();
+ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
+System.out.println("Brevo response: " + response.getStatusCode());
 }
 
 @Override
