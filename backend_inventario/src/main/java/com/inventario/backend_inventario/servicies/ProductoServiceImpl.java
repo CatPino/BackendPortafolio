@@ -1,13 +1,18 @@
 package com.inventario.backend_inventario.servicies;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.inventario.backend_inventario.entities.Producto;
 import com.inventario.backend_inventario.repositories.ProductoRepositories;
 
@@ -16,6 +21,13 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Autowired
     private ProductoRepositories productoRepositories;
+
+    // Traemos las credenciales desde application.properties
+    @Value("${supabase.url}")
+    private String supabaseUrl;
+
+    @Value("${supabase.key}")
+    private String supabaseKey;
 
     @Override
     public Producto crear(Producto producto) {
@@ -42,7 +54,6 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-
     public Producto actualizar(Long id, Producto productoActualizado) {
         Producto existente = obtenerId(id);
         existente.setNombre(productoActualizado.getNombre());
@@ -67,6 +78,7 @@ public class ProductoServiceImpl implements ProductoService {
         return producto != null && producto.getStock() >= cantidadSolicitada;
     }
 
+    // --- AQUÍ ESTÁ LA MAGIA NUEVA ---
     @Override
     public String subirImagen(Long idProducto, MultipartFile archivo) {
         try {
@@ -74,25 +86,49 @@ public class ProductoServiceImpl implements ProductoService {
                 throw new RuntimeException("Archivo vacío");
             }
 
-            Path base = Paths.get(System.getProperty("user.dir"), "img");
-            Files.createDirectories(base); 
-
+            // 1. Limpiar y armar el nombre del archivo
             String original = archivo.getOriginalFilename();
             String ext = (original != null && original.contains("."))
                     ? original.substring(original.lastIndexOf("."))
                     : "";
-            String nombre = "prod_" + idProducto + "_" + System.currentTimeMillis() + ext;
+            // Reemplazamos espacios por guiones para evitar problemas en URLs
+            String nombreLimpio = "prod_" + idProducto + "_" + System.currentTimeMillis() + ext;
 
-            Path destino = base.resolve(nombre);
-            archivo.transferTo(destino.toFile());
+            // 2. Preparar la URL de destino en la API de Supabase (bucket: inventario)
+            String uploadUrl = supabaseUrl + "/storage/v1/object/inventario/" + nombreLimpio;
 
-            String url = "http://localhost:8081/img/" + nombre;
+            // 3. Configurar los Headers con la clave de Supabase
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + supabaseKey);
+            headers.set("apikey", supabaseKey);
+            // Tomamos el Content-Type original del archivo (ej. image/png)
+            headers.setContentType(MediaType.valueOf(archivo.getContentType()));
 
+            // 4. Armar la petición con los bytes del archivo
+            HttpEntity<byte[]> requestEntity = new HttpEntity<>(archivo.getBytes(), headers);
+            RestTemplate restTemplate = new RestTemplate();
+
+            // 5. Enviar el archivo a Supabase
+            ResponseEntity<String> response = restTemplate.exchange(
+                    uploadUrl,
+                    HttpMethod.POST, 
+                    requestEntity,
+                    String.class
+            );
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Error al subir a Supabase: " + response.getBody());
+            }
+
+            // 6. Construir la URL pública final
+            String urlPublica = supabaseUrl + "/storage/v1/object/public/inventario/" + nombreLimpio;
+
+            // 7. Guardar la URL correcta en la base de datos
             Producto p = obtenerId(idProducto);
-            p.setImagenUrl(url);
+            p.setImagenUrl(urlPublica);
             productoRepositories.save(p);
 
-            return url;
+            return urlPublica;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -122,14 +158,12 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public void descontarStock(Long idProducto, int cantidad) {
-    Producto p = obtenerId(idProducto);
+        Producto p = obtenerId(idProducto);
 
-    if (p.getStock() < cantidad) {
-        throw new RuntimeException("No hay stock suficiente");
+        if (p.getStock() < cantidad) {
+            throw new RuntimeException("No hay stock suficiente");
+        }
+        p.setStock(p.getStock() - cantidad);
+        productoRepositories.save(p);
     }
-    p.setStock(p.getStock() - cantidad);
-    productoRepositories.save(p);
-}
-
-
 }
