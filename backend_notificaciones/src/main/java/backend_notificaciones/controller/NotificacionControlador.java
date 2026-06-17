@@ -1,6 +1,6 @@
 package backend_notificaciones.controller;
 
-import Backend_notificaciones.service.NotificacionServicio;
+import backend_notificaciones.service.NotificacionServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +12,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotificacionControlador {
 
-    private final NotificacionServicio notificacionServicio;
+    private final NotificacionServiceImpl notificacionServicio;
 
     @PostMapping("/confirmacion-compra")
     public ResponseEntity<String> confirmacionCompra(@RequestBody Map<String, Object> payload) {

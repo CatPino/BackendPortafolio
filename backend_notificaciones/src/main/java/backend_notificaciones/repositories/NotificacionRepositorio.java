@@ -1,6 +1,6 @@
 package backend_notificaciones.repositories;
 
-import Backend_notificaciones.entities.Notificacion;
+import backend_notificaciones.entities.Notificacion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 

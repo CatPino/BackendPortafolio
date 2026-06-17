@@ -1,7 +1,7 @@
 package backend_notificaciones.service;
 
-import Backend_notificaciones.entities.Notificacion;
-import Backend_notificaciones.repositories.NotificacionRepositorio;
+import backend_notificaciones.entities.Notificacion;
+import backend_notificaciones.repositories.NotificacionRepositorio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,18 +10,19 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class NotificacionServicio {
+public class NotificacionServiceImpl implements NotificacionService {
 
     private final NotificacionRepositorio notificacionRepositorio;
-    private final CorreoServicio correoServicio;
+    private final CorreoServiceImpl correoServicio;
 
+    @Override
     public void enviarConfirmacionCompra(Map<String, Object> payload) {
         String correo = (String) payload.get("correo_comprador");
         String nombre = (String) payload.get("nombre_comprador");
         String ordenId = (String) payload.get("orden_id");
 
         String asunto = "¡Tu compra fue exitosa!";
-        String cuerpo = "Hola " + nombre + ",\n\nTu pedido #" + ordenId + " ha sido confirmado.\n\n¡Gracias por tu compra!";
+        String cuerpo = "<p>Hola " + nombre + ",</p><p>Tu pedido #" + ordenId + " ha sido confirmado.</p><p>¡Gracias por tu compra!</p><p>Equipo Lumiskin</p>";
 
         Notificacion notificacion = new Notificacion();
         notificacion.setTipo("confirmacion_compra");
@@ -31,7 +32,7 @@ public class NotificacionServicio {
         notificacion.setReferenciaId(ordenId);
 
         try {
-            correoServicio.enviarCorreo(correo, asunto, cuerpo);
+            correoServicio.enviarCorreo(correo, nombre, asunto, cuerpo);
             notificacion.setEstado("enviado");
             notificacion.setEnviadoEn(LocalDateTime.now());
         } catch (Exception e) {
@@ -41,6 +42,7 @@ public class NotificacionServicio {
         notificacionRepositorio.save(notificacion);
     }
 
+    @Override
     public void enviarMensajeContacto(Map<String, Object> payload) {
         String nombre = (String) payload.get("nombre");
         String correo = (String) payload.get("correo");
@@ -48,8 +50,8 @@ public class NotificacionServicio {
         String mensaje = (String) payload.get("mensaje");
 
         String asunto = tipo.equals("reclamo") ? "Nuevo reclamo recibido" : "Nueva consulta recibida";
-        String cuerpo = "De: " + nombre + " (" + correo + ")\n\n" + mensaje;
-        String correoAdmin = "admin@tudominio.com";
+        String cuerpo = "<p>De: " + nombre + " (" + correo + ")</p><p>" + mensaje + "</p>";
+        String correoAdmin = "soporte.lumiskin@gmail.com";
 
         Notificacion notificacion = new Notificacion();
         notificacion.setTipo("contacto_" + tipo);
@@ -58,7 +60,7 @@ public class NotificacionServicio {
         notificacion.setCuerpo(cuerpo);
 
         try {
-            correoServicio.enviarCorreo(correoAdmin, asunto, cuerpo);
+            correoServicio.enviarCorreo(correoAdmin, "Administrador", asunto, cuerpo);
             notificacion.setEstado("enviado");
             notificacion.setEnviadoEn(LocalDateTime.now());
         } catch (Exception e) {
