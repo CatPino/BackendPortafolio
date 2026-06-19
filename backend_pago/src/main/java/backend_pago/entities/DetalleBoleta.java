@@ -15,7 +15,6 @@ public class DetalleBoleta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String producto;
     private Integer cantidad;
     private Double precioUnitario;

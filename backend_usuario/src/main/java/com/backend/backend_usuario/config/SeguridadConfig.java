@@ -76,7 +76,11 @@ public class SeguridadConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+
+                // Permitir preflight CORS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // Rutas públicas de usuario
                 .requestMatchers(
                     "/api/usuarios/login",
                     "/api/usuarios",
@@ -85,7 +89,18 @@ public class SeguridadConfig {
                     "/swagger-ui/**",
                     "/v3/api-docs/**"
                 ).permitAll()
+
                 .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+
+                // Formulario de contacto público
+                .requestMatchers(HttpMethod.POST, "/api/contactos").permitAll()
+
+                // Contactos para panel admin
+                .requestMatchers(HttpMethod.GET, "/api/contactos").authenticated()
+                .requestMatchers(HttpMethod.PATCH, "/api/contactos/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/contactos/**").authenticated()
+
+                // Todo lo demás requiere token
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
