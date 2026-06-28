@@ -23,6 +23,16 @@ public record ActualizarUsuarioAdmin(
     @Size(max = 80, message = "La comuna no debe superar los 80 caracteres")
     String comuna,
 
+    // NUEVOS CAMPOS AGREGADOS:
+    @Size(max = 200)
+    String direccion,
+
+    @Size(max = 50)
+    String departamento,
+
+    @Size(max = 255)
+    String info_envio,
+
     Long rolId,
 
     String rolNombre,

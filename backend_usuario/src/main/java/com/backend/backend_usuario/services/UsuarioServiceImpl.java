@@ -31,38 +31,42 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Autowired
     private PasswordEncoder passwordEncoder; 
 
-
     @Value("${brevo.api.key}")
     private String brevoApiKey;
 
-    
-   @Override
+    @Override
     public Usuario crear(SolicitudCrearUsuario req) {
 
-    if (req.email() == null || req.email().isBlank()) {
-        throw new RuntimeException("El correo electrónico no puede estar vacío.");
-    }
+        if (req.email() == null || req.email().isBlank()) {
+            throw new RuntimeException("El correo electrónico no puede estar vacío.");
+        }
 
-    String email = req.email().trim().toLowerCase();
+        String email = req.email().trim().toLowerCase();
 
-    if (usuarioRepository.existsByEmail(email)) {
-        throw new RuntimeException("El correo electrónico ya está registrado.");
-    }
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new RuntimeException("El correo electrónico ya está registrado.");
+        }
 
-    Usuario usuario = new Usuario();
-    usuario.setNombre(req.nombre());
-    usuario.setEmail(email);
-    usuario.setPassword(passwordEncoder.encode(req.password()));
-    usuario.setTelefono(req.telefono());
-    usuario.setRegion(req.region());
-    usuario.setComuna(req.comuna());
-    usuario.setEstado(true);
+        Usuario usuario = new Usuario();
+        usuario.setNombre(req.nombre());
+        usuario.setEmail(email);
+        usuario.setPassword(passwordEncoder.encode(req.password()));
+        usuario.setTelefono(req.telefono());
+        usuario.setRegion(req.region());
+        usuario.setComuna(req.comuna());
+        
+        // ASIGNACIONES DE DIRECCIÓN PARA LA CREACIÓN
+        usuario.setDireccion(req.direccion());
+        usuario.setDepartamento(req.departamento());
+        usuario.setInfoEnvio(req.info_envio());
+        
+        usuario.setEstado(true);
 
-    Rol rol = rolRepository.buscarPorNombre("cliente")
-            .orElseThrow(() -> new RuntimeException("Rol 'cliente' no encontrado"));
-    usuario.setRol(rol);
+        Rol rol = rolRepository.buscarPorNombre("cliente")
+                .orElseThrow(() -> new RuntimeException("Rol 'cliente' no encontrado"));
+        usuario.setRol(rol);
 
-    return usuarioRepository.save(usuario);
+        return usuarioRepository.save(usuario);
     }
 
     @Override
@@ -81,7 +85,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-
     @Override
     public Usuario obtenerPorId(Long id) {
         return usuarioRepository.findById(id)
@@ -90,14 +93,13 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public Usuario buscarPorEmail(String email) {
-    return usuarioRepository.findByEmail(email).orElse(null);
+        return usuarioRepository.findByEmail(email).orElse(null);
     }
 
     @Override
     public boolean verificarPassword(String passwordPlano, String passwordHash) {
         return passwordEncoder.matches(passwordPlano, passwordHash);
     }
-
 
     @Override
     public List<Usuario> listarTodos() {
@@ -110,12 +112,18 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (req.nombre() != null) existente.setNombre(req.nombre());
         if (req.email() != null) existente.setEmail(req.email().trim().toLowerCase());
-        if (req.password() != null) {
+        if (req.password() != null && !req.password().isBlank()) {
             existente.setPassword(passwordEncoder.encode(req.password())); 
         }
         if (req.telefono() != null) existente.setTelefono(req.telefono());
         if (req.region() != null) existente.setRegion(req.region());
         if (req.comuna() != null) existente.setComuna(req.comuna());
+        
+        // ASIGNACIONES DE DIRECCIÓN PARA LA ACTUALIZACIÓN
+        if (req.direccion() != null) existente.setDireccion(req.direccion());
+        if (req.departamento() != null) existente.setDepartamento(req.departamento());
+        if (req.info_envio() != null) existente.setInfoEnvio(req.info_envio());
+        
         if (req.estado() != null) existente.setEstado(req.estado());
 
         // Actualizar rol si se envía
@@ -159,75 +167,74 @@ public class UsuarioServiceImpl implements UsuarioService {
     public List<Usuario> listarInactivos() {
         return usuarioRepository.listarInactivos();
     }
-// ======================= SOLICITAR RECUPERACIÓN DE CONTRASEÑA =======================
-  @Override
-public void solicitarRecuperacionContrasena(String email, String redirectUrl) {
-    Usuario usuario = buscarPorEmail(email.trim().toLowerCase());
 
-    if (usuario == null) {
-        return;
+    // ======================= SOLICITAR RECUPERACIÓN DE CONTRASEÑA =======================
+    @Override
+    public void solicitarRecuperacionContrasena(String email, String redirectUrl) {
+        Usuario usuario = buscarPorEmail(email.trim().toLowerCase());
+
+        if (usuario == null) {
+            return;
+        }
+
+        String token = UUID.randomUUID().toString();
+
+        usuario.setResetToken(token);
+        usuario.setResetTokenExpiracion(LocalDateTime.now().plusMinutes(30));
+
+        usuarioRepository.save(usuario);
+
+        String linkRecuperacion = redirectUrl + "?token=" + token;
+        String url = "https://api.brevo.com/v3/smtp/email";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("api-key", brevoApiKey);
+
+        String body = """
+        {
+          "sender": {
+            "name": "Lumiskin",
+            "email": "soporte.lumiskin@gmail.com"
+          },
+          "to": [
+            {
+              "email": "%s",
+              "name": "%s"
+            }
+          ],
+          "subject": "Recuperación de contraseña - Lumiskin",
+          "htmlContent": "<p>Hola %s,</p><p>Recibimos una solicitud para recuperar tu contraseña.</p><p>Haz clic en el siguiente enlace:</p><p><a href='%s'>Cambiar contraseña</a></p><p>Este enlace expirará en 30 minutos.</p><p>Equipo Lumiskin</p>"
+        }
+        """.formatted(
+                usuario.getEmail(),
+                usuario.getNombre(),
+                usuario.getNombre(),
+                linkRecuperacion
+        );
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
+        System.out.println("Brevo response: " + response.getStatusCode());
     }
 
-    String token = UUID.randomUUID().toString();
+    @Override
+    public void actualizarContrasenaConToken(String token, String nuevaContrasena) {
+        Usuario usuario = usuarioRepository.findByResetToken(token)
+                .orElseThrow(() -> new RuntimeException("Token inválido"));
 
-    usuario.setResetToken(token);
-    usuario.setResetTokenExpiracion(LocalDateTime.now().plusMinutes(30));
+        if (usuario.getResetTokenExpiracion() == null ||
+                usuario.getResetTokenExpiracion().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("El enlace de recuperación expiró");
+        }
 
-    usuarioRepository.save(usuario);
+        usuario.setPassword(passwordEncoder.encode(nuevaContrasena));
+        usuario.setResetToken(null);
+        usuario.setResetTokenExpiracion(null);
 
-    String linkRecuperacion = redirectUrl + "?token=" + token;
-    String url = "https://api.brevo.com/v3/smtp/email";
-
-HttpHeaders headers = new HttpHeaders();
-headers.setContentType(MediaType.APPLICATION_JSON);
-headers.set("api-key", brevoApiKey);
-
-String body = """
-{
-  "sender": {
-    "name": "Lumiskin",
-    "email": "soporte.lumiskin@gmail.com"
-  },
-  "to": [
-    {
-      "email": "%s",
-      "name": "%s"
+        usuarioRepository.save(usuario);
     }
-  ],
-  "subject": "Recuperación de contraseña - Lumiskin",
-  "htmlContent": "<p>Hola %s,</p><p>Recibimos una solicitud para recuperar tu contraseña.</p><p>Haz clic en el siguiente enlace:</p><p><a href='%s'>Cambiar contraseña</a></p><p>Este enlace expirará en 30 minutos.</p><p>Equipo Lumiskin</p>"
-}
-""".formatted(
-        usuario.getEmail(),
-        usuario.getNombre(),
-        usuario.getNombre(),
-        linkRecuperacion
-);
-
-HttpEntity<String> entity = new HttpEntity<>(body, headers);
-
-RestTemplate restTemplate = new RestTemplate();
-ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-
-System.out.println("Brevo response: " + response.getStatusCode());
-}
-
-@Override
-public void actualizarContrasenaConToken(String token, String nuevaContrasena) {
-    Usuario usuario = usuarioRepository.findByResetToken(token)
-            .orElseThrow(() -> new RuntimeException("Token inválido"));
-
-    if (usuario.getResetTokenExpiracion() == null ||
-            usuario.getResetTokenExpiracion().isBefore(LocalDateTime.now())) {
-        throw new RuntimeException("El enlace de recuperación expiró");
-    }
-
-    usuario.setPassword(passwordEncoder.encode(nuevaContrasena));
-    usuario.setResetToken(null);
-    usuario.setResetTokenExpiracion(null);
-
-    usuarioRepository.save(usuario);
-}
-
-
 }

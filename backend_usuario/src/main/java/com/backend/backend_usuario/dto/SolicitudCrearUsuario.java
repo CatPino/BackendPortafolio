@@ -29,5 +29,15 @@ public record SolicitudCrearUsuario(
 
     @NotBlank
     @Size(max = 100)
-    String comuna
+    String comuna,
+
+    // NUEVOS CAMPOS AGREGADOS:
+    @Size(max = 200)
+    String direccion,
+
+    @Size(max = 50)
+    String departamento,
+
+    @Size(max = 255)
+    String info_envio
 ) {}
