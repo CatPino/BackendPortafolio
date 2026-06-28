@@ -61,7 +61,10 @@ class UsuarioServiceImplTest {
                 "12345678",
                 "999999999",
                 "Maule",
-                "Talca"
+                "Talca",
+                null, 
+                null, 
+                null 
         );
 
         when(usuarioRepository.existsByEmail("pancho@correo.com")).thenReturn(false);
