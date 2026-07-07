@@ -53,43 +53,44 @@ public class ContactoService {
     }
 
     private void enviarCorreoNotificacion(Contacto contacto) {
-    String url = "https://api.brevo.com/v3/smtp/email";
+        String url = "https://api.brevo.com/v3/smtp/email";
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.set("api-key", brevoApiKey);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("api-key", brevoApiKey);
 
-    String body = """
-    {
-      "sender": {
-        "name": "Lumiskin - Formulario de contacto",
-        "email": "soporte.lumiskin@gmail.com"
-      },
-      "to": [
+        String body = """
         {
-          "email": "soporte.lumiskin@gmail.com",
-          "name": "Equipo Lumiskin"
+        "sender": {
+            "name": "Lumiskin - Formulario de contacto",
+            "email": "soporte.lumiskin@gmail.com"
+        },
+        "to": [
+            {
+            "email": "soporte.lumiskin@gmail.com",
+            "name": "Equipo Lumiskin"
+            }
+        ],
+        "replyTo": {
+            "email": "%s",
+            "name": "%s"
+        },
+        "subject": "Nuevo mensaje de contacto de %s",
+        "htmlContent": "<p><strong>Nombre:</strong> %s</p><p><strong>Correo:</strong> %s</p><p><strong>Mensaje:</strong></p><p>%s</p>"
         }
-      ],
-      "replyTo": {
-        "email": "%s",
-        "name": "%s"
-      },
-      "subject": "Nuevo mensaje de contacto de %s",
-      "htmlContent": "<p><strong>Nombre:</strong> %s</p><p><strong>Correo:</strong> %s</p><p><strong>Mensaje:</strong></p><p>%s</p>"
+        """.formatted(
+                contacto.getEmail(),
+                contacto.getNombre(),
+                contacto.getNombre(),
+                contacto.getNombre(),
+                contacto.getEmail(),
+                contacto.getContenido()
+        );
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
+        System.out.println("Brevo response: " + response.getStatusCode());
     }
-    """.formatted(
-            contacto.getEmail(),
-            contacto.getNombre(),
-            contacto.getNombre(),
-            contacto.getNombre(),
-            contacto.getEmail(),
-            contacto.getContenido()
-    );
-
-    HttpEntity<String> entity = new HttpEntity<>(body, headers);
-    RestTemplate restTemplate = new RestTemplate();
-    ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-
-    System.out.println("Brevo response: " + response.getStatusCode());
 }
