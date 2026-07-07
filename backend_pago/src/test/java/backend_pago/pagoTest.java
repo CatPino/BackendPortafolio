@@ -1,4 +1,4 @@
-package backend_pago.service;
+package backend_pago;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -13,6 +13,7 @@ import backend_pago.entities.Pago;
 import backend_pago.repositories.boletaRepository;
 import backend_pago.repositories.detalleBoletaRepository;
 import backend_pago.repositories.pagoRepository;
+import backend_pago.service.pagoServiceImpl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
